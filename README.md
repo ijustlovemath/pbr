@@ -8,6 +8,8 @@
 pkg install git pianobar pulseaudio
 ```
 
+Additionally, install the Termux API app from Fdroid, for access to media notifications.
+
 2. Create a config file for libao
 
 ### ~/.libao
