@@ -40,6 +40,8 @@ set -eu
   blankicon="$fold/pandora.jpg"
 
 function nop () {
+	shift
+	shift
 	echo "$@"
 }
   
@@ -105,9 +107,9 @@ download|d)
 			wget -q -O "`cat $dn`.$ext" "`cat $du`" &
 			exit
 		else
-			$notify -t 2000 "$basefilename" "Already exists in `cat $dd` ($filesize_mb MB)"
 			filesize=$(wc -c <"$filename")
 			filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
+			$notify -t 2000 "$basefilename" "Already exists in `cat $dd` ($filesize_mb MB)"
 		fi
 		
 		minsize=500000 # minimum size in bytes, 500k
