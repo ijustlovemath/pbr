@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import typing
 import re
 from collections import defaultdict
 import sys
 from pathlib import Path
 from urllib.request import urlretrieve as httpget
+from pprint import pformat as pp
 
 root = Path(__file__).parents[0]
 
@@ -12,7 +13,13 @@ root = Path(__file__).parents[0]
 class Url:
     url: str
 
+    def __bool__(self):
+        return bool(self.url)
+
     def save(self, path: Path):
+        if not self.url:
+            print(f"No URL was found for the asset `{path}`\n{pp(dd)}", file=sys.stderr)
+            return
         assert path is not None, "your Paths getter isnt implemented correctly, make sure to return"
         httpget(self.url, path)
 
@@ -47,16 +54,16 @@ class Paths:
             f.write(str(path))
 
     @classmethod
-    def dl_dest(cls, bn):
-        cls.sigfile(bn.dldest(), root / "downloaddir")
+    def dl_dest(cls, content: str, bn):
+        cls.sigfile(content, root / "downloaddir")
 
     @classmethod
-    def dl_name(cls, bn):
-        cls.sigfile(bn.dlname(), root / "downloadname")
+    def dl_name(cls, content: str, bn):
+        cls.sigfile(content, root / "downloadname")
 
     @classmethod
-    def nowplaying(cls, bn):
-        cls.sigfile(f'"{bn.title}" by {bn.artist}', root / "nowplaying")
+    def nowplaying(cls, content: str, bn):
+        cls.sigfile(content, root / "nowplaying")
 
     @classmethod
     def coverart(cls, bn):
@@ -80,13 +87,21 @@ class BarNotif:
     rating: int
     detailUrl: Url
     songDuration: int
-    artistNext: list[str]
-    titleNext: list[str]
-    albumNext: list[str]
-    coverArtNext: list[Url]
-    ratingNext: list[int]
-    detailUrlNext: list[Url]
-    songDurationNext: list[int]
+    # These are sometimes missing so give them safe defaults
+    # 'artistNext', 'titleNext', 'albumNext', 'coverArtNext', 'ratingNext', 'detailUrlNext', and 'songDurationNext'
+    artistNext: list[str] = field(default_factory=lambda: [""])
+    titleNext: list[str] = field(default_factory=lambda: [""])
+
+    albumNext: list[str] = field(default_factory=lambda: [""])
+
+    coverArtNext: list[Url] = field(default_factory=lambda: [""])
+
+    ratingNext: list[int] = field(default_factory=lambda: ["0"])
+
+    detailUrlNext: list[Url] = field(default_factory=lambda: [""])
+
+    songDurationNext: list[int] = field(default_factory=lambda: ["0"])
+
     stationCount: int
     station: list[str]
 
@@ -98,8 +113,11 @@ class BarNotif:
             url = getter(self)
             url.save(path)
 
-        for sigfiler in mdf.sigfiles.values():
-            sigfiler(self)
+        # nothing to download, these are just special files to communicate state to cpbr
+        for getter, sigfiler in mdf.sigfiles.items():
+            content = getter(self)
+            assert content is not None, f"{getter} much return a string"
+            sigfiler(content.replace("/", "_"), self)
 
 
     @property
@@ -109,7 +127,7 @@ class BarNotif:
     
     @mdf.sigfile(path=Paths.nowplaying)
     def nowplaying(self):
-        pass
+        return f'"{self.title}" by {self.artist}'
 
     @property
     def songfile(self): # equivalent to filename()
@@ -126,7 +144,8 @@ class BarNotif:
 
     @mdf.save_to(path=Paths.coverart)
     def coverart(self):
-        return self.coverArt
+        # sometimes coverArt is empty in which case coverArtNext is correct
+        return self.coverArt or self.coverArtNext[0]
 
     def __post_init__(self):
         for name, dtype in self.__annotations__.items():
@@ -157,7 +176,8 @@ for line in lines:
 
 try:
     data = BarNotif(**dd)
-except TypeError:
+except TypeError as e:
+    print(f"Had a problem with parsing incoming data: {pp(dd)}\n{e}", file=sys.stderr)
     quit()
 
 data.save_metadata()
