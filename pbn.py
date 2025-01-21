@@ -47,9 +47,22 @@ class MetadataFactory:
 mdf = MetadataFactory()
 
 class Paths:
+    @clasmethod
+    def backup(sigfile: Path, history: int = 5):
+        backups = root / "history"
+        backups.mkdir(parents=True, exist_ok=True)
+
+        todel = history - 1
+
+        shutil.rmtree(
+
+        for i in range(1, history)
+
+
     @classmethod
     def sigfile(cls, path: Path, sigfile: Path):
         """communicate where to find current assets to control-pianobar"""
+        cls.backup(sigfile)
         with open(sigfile, "w") as f:
             f.write(str(path))
 
