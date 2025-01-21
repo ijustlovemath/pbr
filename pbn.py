@@ -48,9 +48,13 @@ class MetadataFactory:
 mdf = MetadataFactory()
 
 class Paths:
-    @clasmethod
-    def backup(sigfile: Path, history: int = 5):
+    @classmethod
+    def backup(cls, sigfile: Path, history: int = 10):
         backups = root / "history"
+        print = lambda *args, **kwargs: None
+        if not data:
+            # failed to parse, leave history intact
+            return 
 
         for i in range(history):
             tree = backups / f"{i}"
@@ -62,14 +66,21 @@ class Paths:
 
         candidate = backups / f"{todel}" / fname
         if candidate.exists():
+            print(f"deleting {todel}/{fname}")
             candidate.unlink()
 
-        for i in range(todel):
-            candidate = backups / f"{i}" / fname
-            if candidate.exists():
-                shutil.move(candidate, backups / f"{i+1}" / fname)
 
+        # gotta go in reverse order, otherwise it just moves the same data
+        for i in range(todel, 0, -1):
+            candidate = backups / f"{i-1}" / fname
+            print(f"moving {i}, {fname}, {candidate.exists()}")
+            if candidate.exists():
+                shutil.move(candidate, backups / f"{i}" / fname)
+
+        print(f"saving initial to 0/{fname}")
+        # must happen after the shuffle, to start
         shutil.copy(sigfile, backups / "0" / fname)
+
             
 
 
@@ -201,6 +212,7 @@ for line in lines:
 #    print(key, match.group(2)
     dd[key].append(data)
 
+data = None
 try:
     data = BarNotif(**dd)
 except TypeError as e:
