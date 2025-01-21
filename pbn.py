@@ -3,6 +3,7 @@ import typing
 import re
 from collections import defaultdict
 import sys
+import shutil
 from pathlib import Path
 from urllib.request import urlretrieve as httpget
 from pprint import pformat as pp
@@ -50,13 +51,26 @@ class Paths:
     @clasmethod
     def backup(sigfile: Path, history: int = 5):
         backups = root / "history"
-        backups.mkdir(parents=True, exist_ok=True)
+
+        for i in range(history):
+            tree = backups / f"{i}"
+            tree.mkdir(parents=True, exist_ok=True)
 
         todel = history - 1
 
-        shutil.rmtree(
+        fname = sigfile.parts[-1]
 
-        for i in range(1, history)
+        candidate = backups / f"{todel}" / fname
+        if candidate.exists():
+            candidate.unlink()
+
+        for i in range(todel):
+            candidate = backups / f"{i}" / fname
+            if candidate.exists():
+                shutil.move(candidate, backups / f"{i+1}" / fname)
+
+        shutil.copy(sigfile, backups / "0" / fname)
+            
 
 
     @classmethod
