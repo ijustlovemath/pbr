@@ -103,8 +103,14 @@ download|d)
 		filename="$(readlink -f .)/$basefilename"
 
 		if [[ ! -e "`cat $dn`.$ext" ]]; then
-			$notify -t 4000 "Downloading..." "'$basefilename' to `cat $dd`"
-			wget -q -O "`cat $dn`.$ext" "`cat $du`" &
+#			$notify -t 4000 "Downloading..." "'$basefilename'"
+			if wget -q -O "`cat $dn`.$ext" "`cat $du`"; then
+				filesize=$(wc -c <"$filename")
+				filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
+				$notify -t 3000 "Downloaded $basefilename ($filesize_mb MB)"
+			else
+				$notify -t 3000 "Download failed for $dn"
+			fi
 			exit
 		else
 			filesize=$(wc -c <"$filename")
