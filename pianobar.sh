@@ -126,11 +126,13 @@ download|d)
 love|l|+)
 	if [[ -n `pidof pianobar` ]]; then
 		echo -n "+" > "$ctlf"
+		echo "Loved $(cat $np)"
 	fi;;
     
 ban|b|-|hate)
 	if [[ -n `pidof pianobar` ]]; then
 		echo -n "-" > "$ctlf"
+		echo "Disliked $(cat $np)"
 	fi;;
     
 next|n)

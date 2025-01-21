@@ -55,6 +55,10 @@ class Paths:
         cls.sigfile(bn.dlname(), root / "downloadname")
 
     @classmethod
+    def nowplaying(cls, bn):
+        cls.sigfile(f'"{bn.title}" by {bn.artist}', root / "nowplaying")
+
+    @classmethod
     def coverart(cls, bn):
         path = root / "albumart" / f"{bn.artist}-{bn.album}.jpg".replace("/", "_")
         cls.sigfile(path, root / "artname")
@@ -102,6 +106,11 @@ class BarNotif:
     def songname(self):
         return f"{self.artist} - {self.title}"
 
+    
+    @mdf.sigfile(path=Paths.nowplaying)
+    def nowplaying(self):
+        pass
+
     @property
     def songfile(self): # equivalent to filename()
         return self.songname
@@ -109,6 +118,7 @@ class BarNotif:
     @mdf.sigfile(path=Paths.dl_name)
     def dlname(self):
         return self.songfile
+
 
     @mdf.sigfile(path=Paths.dl_dest)
     def dldest(self):
