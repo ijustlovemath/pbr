@@ -49,17 +49,12 @@ mdf = MetadataFactory()
 
 class Paths:
     @classmethod
-    def backup(cls, content: str, sigfile: Path, history: int = 10):
+    def backup(cls, sigfile: Path, history: int = 10):
         backups = root / "history"
-        #print = lambda *args, **kwargs: None
+        print = lambda *args, **kwargs: None
         if not data:
             # failed to parse, leave history intact
             return
-
-        with open(sigfile) as current:
-            if content in current.read():
-                print("duplicate call detected, backups will not rotate")
-                return
 
         for i in range(history):
             tree = backups / f"{i}"
@@ -86,13 +81,16 @@ class Paths:
         # must happen after the shuffle, to start
         shutil.copy(sigfile, backups / "0" / fname)
 
-            
-
-
     @classmethod
     def sigfile(cls, content: str, sigfile: Path):
         """communicate where to find current assets to control-pianobar"""
-        cls.backup(content, sigfile)
+        #print = lambda *args, **kwargs: None
+        with open(sigfile, "r") as current:
+            # this is expensive but realistically only a few ms
+            if content in current.read():
+                print("duplicate call detected, backups will not rotate")
+            else:  
+                cls.backup(sigfile)
         with open(sigfile, "w") as f:
             f.write(content)
 
@@ -111,7 +109,7 @@ class Paths:
     @classmethod
     def coverart(cls, bn):
         path = root / "albumart" / f"{bn.artist}-{bn.album}.jpg".replace("/", "_")
-        cls.sigfile(path, root / "artname")
+        cls.sigfile(str(path), root / "artname")
         return path
 
 @dataclass(kw_only=True, slots=True)
