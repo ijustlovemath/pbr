@@ -87,9 +87,8 @@ class Paths:
         #print = lambda *args, **kwargs: None
         with open(sigfile, "r") as current:
             # this is expensive but realistically only a few ms
-            if content in current.read():
-                print("duplicate call detected, backups will not rotate")
-            else:  
+            if content not in current.read():
+                #print("duplicate call detected, backups will not rotate")
                 cls.backup(sigfile)
         with open(sigfile, "w") as f:
             f.write(content)
