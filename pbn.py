@@ -49,12 +49,17 @@ mdf = MetadataFactory()
 
 class Paths:
     @classmethod
-    def backup(cls, sigfile: Path, history: int = 10):
+    def backup(cls, content: str, sigfile: Path, history: int = 10):
         backups = root / "history"
-        print = lambda *args, **kwargs: None
+        #print = lambda *args, **kwargs: None
         if not data:
             # failed to parse, leave history intact
-            return 
+            return
+
+        with open(sigfile) as current:
+            if content in current.read():
+                print("duplicate call detected, backups will not rotate")
+                return
 
         for i in range(history):
             tree = backups / f"{i}"
@@ -85,11 +90,11 @@ class Paths:
 
 
     @classmethod
-    def sigfile(cls, path: Path, sigfile: Path):
+    def sigfile(cls, content: str, sigfile: Path):
         """communicate where to find current assets to control-pianobar"""
-        cls.backup(sigfile)
+        cls.backup(content, sigfile)
         with open(sigfile, "w") as f:
-            f.write(str(path))
+            f.write(content)
 
     @classmethod
     def dl_dest(cls, content: str, bn):
