@@ -60,7 +60,7 @@ function download_file () {
 	else
 		$notify -t 3000 "Download failed for $basefilename"
 
-		echo "wget -q -O \"$filename\" $url" > faildl.sh
+		echo "wget -q -O \"$filename\" \"$url\" " > faildl.sh
 		$notify -t 3000 "Failed wget has been saved"
 		rm $filename 2> /dev/null
 	fi
@@ -125,7 +125,7 @@ download|d)
 		url="$(cat $du)"
 		if [[ ! -e "`cat $dn`.$ext" ]]; then
 #			$notify -t 4000 "Downloading..." "'$basefilename'"
-			download_file $filename $url $basefilename
+			download_file "$filename" "$url" "$basefilename"
 			exit
 		else
 			filesize=$(wc -c <"$filename")
