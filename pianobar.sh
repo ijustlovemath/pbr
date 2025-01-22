@@ -44,6 +44,27 @@ function nop () {
 	shift
 	echo "$@"
 }
+
+function download_file () { 
+	filename=$1
+	url=$2
+	basefilename=$3
+	if [ -z "$basefilename" ]; then
+		echo "something went wrong calling download_file"
+		exit
+	fi
+	if wget -q -O "$filename" "$url"; then
+		filesize=$(wc -c <"$filename")
+		filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
+		$notify -t 3000 "Downloaded $basefilename ($filesize_mb MB)"
+	else
+		$notify -t 3000 "Download failed for $basefilename"
+
+		echo "wget -q -O \"$filename\" $url" > faildl.sh
+		$notify -t 3000 "Failed wget has been saved"
+		rm $filename 2> /dev/null
+	fi
+}
   
 # You probably shouldn't mess with these (or anything else)
 if [[ "$fold" == "/pianobar" ]]; then
@@ -101,32 +122,23 @@ download|d)
 		fi
 		basefilename="$(cat $dn).$ext"
 		filename="$(readlink -f .)/$basefilename"
-
+		url="$(cat $du)"
 		if [[ ! -e "`cat $dn`.$ext" ]]; then
 #			$notify -t 4000 "Downloading..." "'$basefilename'"
-			if wget -q -O "`cat $dn`.$ext" "`cat $du`"; then
-				filesize=$(wc -c <"$filename")
-				filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
-				$notify -t 3000 "Downloaded $basefilename ($filesize_mb MB)"
-			else
-				$notify -t 3000 "Download failed for $dn"
-			fi
+			download_file $filename $url $basefilename
 			exit
 		else
 			filesize=$(wc -c <"$filename")
+			minsize=500000 # minimum size in bytes, 500k
 			filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
+			if [ $minsize -ge $filesize ]; then
+				$notify -t 3000 "Redownloading..." "Last attempt for $basefilename failed, retrying"
+				download_file "$filename" "$url" "$basefilename"
+				exit
+			fi
 			$notify -t 2000 "$basefilename" "Already exists in `cat $dd` ($filesize_mb MB)"
+			exit
 		fi
-		
-		minsize=500000 # minimum size in bytes, 500k
-		filename="$(readlink -f .)/$basefilename"
-		filesize=$(wc -c <"$filename")
-		filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
-		if [ $minsize -ge $filesize ]; then
-			$notify -t 3000 "Redownloading..." "Last attempt for $basefilename failed, retrying"
-			rm $filename 2> /dev/null
-		fi
-
 	fi;;
 
 love|l|+)
