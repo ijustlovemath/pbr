@@ -62,7 +62,7 @@ function download_file () {
 
 		echo "wget -q -O \"$filename\" \"$url\" " > faildl.sh
 		$notify -t 3000 "Failed wget has been saved"
-		rm $filename 2> /dev/null
+		rm "$filename" 2> /dev/null
 	fi
 }
   
@@ -93,14 +93,14 @@ echo "" > "$logf"
 case $1 in
 
 p|pause|play)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "p" > "$ctlf"
-		if [[ "$(cat $ip)" == 1 ]]; then
+		if [[ "$(cat "$ip")" == 1 ]]; then
 			echo "0" > "$ip"
-			$notify -t 2500 -i "`cat $an`" "Song Paused" "`cat $fold/nowplaying`"
+			$notify -t 2500 -i "$(cat "$an")" "Song Paused" "$(cat "$fold"/nowplaying)"
 		else
 			echo "1" > "$ip"
-			$notify -t 2500 -i "`cat $an`" "Song Playing" "`cat $fold/nowplaying`"
+			$notify -t 2500 -i "$(cat "$an")" "Song Playing" "$(cat "$fold"/nowplaying)"
 		fi
 	else
 		mkdir -p "$fold/albumart"
@@ -112,18 +112,18 @@ p|pause|play)
 	fi;;
     
 download|d)
-	if [[ -n `pidof pianobar` ]]; then	
+	if [[ -n $(pidof pianobar) ]]; then	
 		echo -n "$" > "$ctlf"
 		tac "$logf" | grep -am1 audioUrl | sed '{ s/^.*audioUrl:\t//; }' | cat > "$du"
-		mkdir -p "$fold/songs/`cat $dd`"
-		cd "$fold/songs/`cat $dd`"
-		if [[ -z `cat "$du" | grep mp3` ]]; then ext="m4a"
+		mkdir -p "$fold/songs/$(cat "$dd")"
+		cd "$fold/songs/$(cat "$dd")"
+		if [[ -z $(cat "$du" | grep mp3) ]]; then ext="m4a"
 		else ext="mp3"
 		fi
-		basefilename="$(cat $dn).$ext"
+		basefilename="$(cat "$dn").$ext"
 		filename="$(readlink -f .)/$basefilename"
-		url="$(cat $du)"
-		if [[ ! -e "`cat $dn`.$ext" ]]; then
+		url="$(cat "$du")"
+		if [[ ! -e "$(cat "$dn").$ext" ]]; then
 #			$notify -t 4000 "Downloading..." "'$basefilename'"
 			download_file "$filename" "$url" "$basefilename"
 			exit
@@ -131,41 +131,41 @@ download|d)
 			filesize=$(wc -c <"$filename")
 			minsize=500000 # minimum size in bytes, 500k
 			filesize_mb=$(printf "%.2f\n" $(bc -l <<< "$filesize/1000000"))
-			if [ $minsize -ge $filesize ]; then
+			if [ $minsize -ge "$filesize" ]; then
 				$notify -t 3000 "Redownloading..." "Last attempt for $basefilename failed, retrying"
 				download_file "$filename" "$url" "$basefilename"
 				exit
 			fi
-			$notify -t 2000 "$basefilename" "Already exists in `cat $dd` ($filesize_mb MB)"
+			$notify -t 2000 "$basefilename" "Already exists in $(cat "$dd") ($filesize_mb MB)"
 			exit
 		fi
 	fi;;
 
 love|l|+)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "+" > "$ctlf"
-		echo "Loved $(cat $np)"
+		echo "Loved $(cat "$np")"
 	fi;;
     
 ban|b|-|hate)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "-" > "$ctlf"
-		echo "Disliked $(cat $np)"
+		echo "Disliked $(cat "$np")"
 	fi;;
     
 next|n)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "n" > "$ctlf"
 	fi;;
 
 tired|t)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "t" > "$ctlf"
 		$notify -t 2000 "Tired" "We won't play this song for at least a month."
 	fi;;
     
 stop|quit|q)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		$notify -t 1000 "Quitting Pianobar"
 		echo -n "q" > "$ctlf"
 		echo "0" > "$ip"
@@ -182,21 +182,21 @@ stop|quit|q)
 	fi;;
     
 explain|e)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "e" > "$ctlf"
 	fi;;
     
 playing|current|c)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		sleep 1
 		time="$(grep "#" "$logf" --text | tail -1 | sed 's/.*# \+-\([0-9:]\+\)\/\([0-9:]\+\)/\\\\-\1\\\/\2/')"
-		$notify -t 5000 -i "`cat $an`" "$(cat "$np")" "$(sed "1 s/.*/$time/" "$ds")"
+		$notify -t 5000 -i "$(cat "$an")" "$(cat "$np")" "$(sed "1 s/.*/$time/" "$ds")"
 	fi;;
     
 nextstation|ns)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		stat="$(grep --text "^Station: " "$ds" | sed 's/Station: //')"
-		newnum="$((`grep --text "$stat" "$stl" | sed 's/\([0-9]\+\)).*/\1/'`+1))"
+		newnum="$(($(grep --text "$stat" "$stl" | sed 's/\([0-9]\+\)).*/\1/')+1))"
 		newstt="$(sed "s/^$newnum) \(.*\)/-->\1/" "$stl" | sed 's/^[0-9]\+) \(.*\)/* \1/')"
 		if [[ -z "$(grep "^-->" "$newstt")" ]]; then
 			newnum=0
@@ -207,9 +207,9 @@ nextstation|ns)
 	fi;;
     
 prevstation|ps)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		stat="$(grep --text "^Station: " "$ds" | sed 's/Station: //')"
-		newnum="$((`grep --text "$stat" "$stl" | sed 's/\([0-9]\+\)).*/\1/'`-1))"
+		newnum="$(($(grep --text "$stat" "$stl" | sed 's/\([0-9]\+\)).*/\1/')-1))"
 		[[ "$newnum" -lt 0 ]] && newnum=$(($(wc -l < "$stl")-1))
 		newstt="$(sed "s/^$newnum) \(.*\)/-->\1/" "$stl" | sed 's/^[0-9]\+) \(.*\)/* \1/')"
 		echo "s$newnum" > "$ctlf"
@@ -217,7 +217,7 @@ prevstation|ps)
 	fi;;
     
 switchstation|ss)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		text="$(grep --text "[0-9]\+)" "$logf" | sed 's/.*\t\(.*)\) *\(Q \+\)\?\([^ ].*\)/\1 \3/')""\n \n Type a number."
 		newnum="$($zenity --entry --title="Switch Station" --text="$(cat "$stl")\n Pick a number.")"
 		if [[ -n "$newnum" ]]; then
@@ -229,7 +229,7 @@ switchstation|ss)
 	
 
 switchstationlist|ssl)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		text="$(grep --text "[0-9]\+)" "$logf" | sed 's/.*\t\(.*)\) *\(Q \+\)\?\([^ ].*\)/\1 \3/')""\n \n Type a number."
 		newnum="$(echo "$(cat "$stl")" | $zenity --list --column="Station" --title="Switch Station" --text="Pick a number." | awk -F')' '{print $1}')"
 		if [[ -n "$newnum" ]]; then
@@ -240,10 +240,10 @@ switchstationlist|ssl)
 	fi;;
     
 upcoming|queue|u)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "u" > "$ctlf"
 		sleep .5
-		list="$(grep --text '[0-9])' $logf | sed 's/.*\t [0-9])/*/; s/&/\&amp;/; s/</\&lt;/')"
+		list="$(grep --text '[0-9])' "$logf" | sed 's/.*\t [0-9])/*/; s/&/\&amp;/; s/</\&lt;/')"
 		if [[ -z "$list" ]]; then
 			$notify "No Upcoming Songs" "This is probably the last song in the list."
 		else
@@ -252,7 +252,7 @@ upcoming|queue|u)
 	fi;;    
 
 "history"|h)
-	if [[ -n `pidof pianobar` ]]; then
+	if [[ -n $(pidof pianobar) ]]; then
 		echo -n "h" > "$ctlf"
 		text="$(grep --text "[0-9]\+)" "$logf" | sed 's/.*\t\(.*) *[^ ].*\)/\1/')""\n \n Type a number."
 		snum="$($zenity --entry --title="History" --text="$text")"
