@@ -218,7 +218,8 @@ data = None
 try:
     data = BarNotif(**dd)
 except TypeError as e:
-    print(f"Had a problem with parsing incoming data: {pp(dd)}\n{e}", file=sys.stderr)
+    # This is not an error, just means we got notified and the data is incomplete/not actionable
+    # print(f"Had a problem with parsing incoming data: {pp(dd)}\n{e}", file=sys.stderr)
     quit()
 
 data.save_metadata()

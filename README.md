@@ -61,24 +61,29 @@ export PATH="$PATH:~/.local/usr/bin"
 
 # Usage
 
-## Spawn pulseaudio
-
-`pulseaudio --daemon`
 
 ## Spawn a media notification
 
 `pbr`
 
+This will also start the downloader/liker notification (called pianobar-tools), and pulseaudio
+
 Press the play/pause button to make it play
 Press next to skip to next song
+
+You also have access to the full pianobar interface this way
 
 ## Download the current song
 
 `cpbr d`
 
+or click the `\/` button in pianobar-tools
+
 ## Like/Dislike the current song
 
 `cpbr +/-`
+
+or click the `<3` or `</3` button in pianobar-tools
 
 ## Spawn a notification with current song info
 

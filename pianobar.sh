@@ -108,6 +108,9 @@ p|pause|play)
 		rm "$ctlf" 2> /dev/null
 		mkfifo "$ctlf"
 		$notify -t 2500 "Starting Pianobar" "Logging in..."
+		if [[ ! -n "$(pidof pulseaudio)" ]]; then
+			pulseaudio --daemon
+		fi
 		"$pianobar" | tee "$logf"
 	fi;;
     
