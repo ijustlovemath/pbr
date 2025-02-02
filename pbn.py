@@ -85,6 +85,9 @@ class Paths:
     def sigfile(cls, content: str, sigfile: Path):
         """communicate where to find current assets to control-pianobar"""
         #print = lambda *args, **kwargs: None
+        if None in [content, sigfile]:
+            print(f"something went wrong saving '{content}' to '{sigfile}'")
+            return
         with open(sigfile, "r") as current:
             # this is expensive but realistically only a few ms
             if content not in current.read():
@@ -107,6 +110,8 @@ class Paths:
 
     @classmethod
     def coverart(cls, bn):
+        if bn.coverart is None:
+            return None
         path = root / "albumart" / f"{bn.artist}-{bn.album}.jpg".replace("/", "_")
         cls.sigfile(str(path), root / "artname")
         return path
@@ -151,12 +156,17 @@ class BarNotif:
         for getter, formatter in mdf.items():
             path = formatter(self)
             url = getter(self)
+            if url is None:
+                print(f"{getter} must return a string: {self}")
+                continue
             url.save(path)
 
         # nothing to download, these are just special files to communicate state to cpbr
         for getter, sigfiler in mdf.sigfiles.items():
             content = getter(self)
-            assert content is not None, f"{getter} much return a string"
+            if content is None:
+                print(f"{getter} must return a string: {self}")
+                continue
             sigfiler(content.replace("/", "_"), self)
 
 
@@ -185,7 +195,7 @@ class BarNotif:
     @mdf.save_to(path=Paths.coverart)
     def coverart(self):
         # sometimes coverArt is empty in which case coverArtNext is correct
-        return self.coverArt or self.coverArtNext[0]
+        return self.coverArt or (self.coverArtNext[0] if self.coverArt else None)
 
     def __post_init__(self):
         for name, dtype in self.__annotations__.items():

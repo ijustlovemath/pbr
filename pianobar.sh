@@ -118,6 +118,8 @@ download|d)
 	if [[ -n $(pidof pianobar) ]]; then	
 		echo -n "$" > "$ctlf"
 		tac "$logf" | grep -am1 audioUrl | sed '{ s/^.*audioUrl:\t//; }' | cat > "$du"
+		# once we have the url, restore the song status to cli
+		echo -n "i" > "$ctlf"
 		mkdir -p "$fold/songs/$(cat "$dd")"
 		cd "$fold/songs/$(cat "$dd")"
 		if [[ -z $(cat "$du" | grep mp3) ]]; then ext="m4a"
