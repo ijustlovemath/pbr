@@ -73,6 +73,10 @@ Press next to skip to next song
 
 You also have access to the full pianobar interface this way
 
+## Open current song in Spotify search
+
+Click the Previous button on the media notification (pianobar has no way to play the previous song)
+
 ## Download the current song
 
 `cpbr d`

@@ -10,6 +10,10 @@ from pprint import pformat as pp
 
 root = Path(__file__).parents[0]
 
+def sane_fname(s: str) -> str:
+    for r in "/:?":
+        s = s.replace(r, "_")
+    return s
 @dataclass
 class Url:
     url: str
@@ -112,7 +116,7 @@ class Paths:
     def coverart(cls, bn):
         if bn.coverart is None:
             return None
-        path = root / "albumart" / f"{bn.artist}-{bn.album}.jpg".replace("/", "_")
+        path = root / "albumart" / sane_fname(f"{bn.artist}-{bn.album}.jpg")
         cls.sigfile(str(path), root / "artname")
         return path
 
@@ -167,7 +171,8 @@ class BarNotif:
             if content is None:
                 print(f"{getter} must return a string: {self}")
                 continue
-            sigfiler(content.replace("/", "_"), self)
+            content = sane_fname(content)
+            sigfiler(content, self)
 
 
     @property
